@@ -6,7 +6,7 @@
 <div class="row justify-content-center">
     <div class="col-lg-8">
         <div class="card shadow-sm">
-            <div class="card-header bg-white d-flex align-items-center">
+            <div class="card-header bg-white d-flex align-items-center justify-content-between">
                 <a href="{% url 'accounts:user_profile' username=other_user.username %}" class="text-decoration-none d-flex align-items-center">
                     {% if other_user.avatar %}
                     <img src="{{ other_user.avatar.url }}" alt="头像" class="rounded-circle me-2" style="width: 36px; height: 36px; object-fit: cover;">
@@ -17,32 +17,69 @@
                     {% endif %}
                     <span class="fw-bold">{{ other_user.get_display_name }}</span>
                 </a>
+                <div class="d-flex align-items-center gap-2">
+                    {% if ai_config.is_enabled and ai_config.is_configured %}
+                    <span class="badge bg-success"><i class="bi bi-robot me-1"></i>AI已启用</span>
+                    {% endif %}
+                    <a href="{% url 'messages:ai_config' %}" class="btn btn-outline-secondary btn-sm" title="AI设置">
+                        <i class="bi bi-gear"></i>
+                    </a>
+                </div>
             </div>
             <div class="card-body" id="messages-container" style="height: 500px; overflow-y: auto;">
                 {% for msg in messages_list %}
-                <div class="d-flex mb-3 {% if msg.sender == user %}justify-content-end{% endif %}">
+                <div class="d-flex mb-3 {% if msg.sender == user and msg.sender_type != 'ai' %}justify-content-end{% endif %}">
+                    {% if msg.sender_type == 'ai' %}
+                    <div class="bg-light border rounded p-3" style="max-width: 70%;">
+                        <div class="small text-muted mb-1">
+                            <i class="bi bi-robot me-1"></i>AI助手 &middot; {{ msg.created_at|date:"m-d H:i" }}
+                        </div>
+                        <div style="white-space: pre-wrap;">{{ msg.content }}</div>
+                    </div>
+                    {% else %}
                     <div class="{% if msg.sender == user %}bg-primary text-white{% else %}bg-light{% endif %} rounded p-3" style="max-width: 70%;">
                         <div class="small {% if msg.sender == user %}text-white-50{% else %}text-muted{% endif %} mb-1">
                             {{ msg.created_at|date:"m-d H:i" }}
                         </div>
                         <div style="white-space: pre-wrap;">{{ msg.content }}</div>
                     </div>
+                    {% endif %}
                 </div>
                 {% empty %}
                 <div class="text-center text-muted py-5">
                     <p>开始和 {{ other_user.get_display_name }} 聊天吧！</p>
+                    {% if ai_config.is_configured %}
+                    <p class="small">开启AI模式后，发送的消息将由AI自动回复</p>
+                    {% endif %}
                 </div>
                 {% endfor %}
             </div>
             <div class="card-footer bg-white">
                 <form method="post" action="{% url 'messages:send' pk=conversation.pk %}" id="message-form">
                     {% csrf_token %}
-                    <div class="input-group">
+                    <div class="input-group mb-2">
                         <input type="text" name="content" class="form-control" placeholder="输入消息..." required id="message-input">
                         <button type="submit" class="btn btn-primary">
                             <i class="bi bi-send"></i>
                         </button>
                     </div>
+                    {% if ai_config.is_configured %}
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="use_ai" id="use-ai-toggle"
+                               {% if ai_config.is_enabled %}checked{% endif %}>
+                        <label class="form-check-label small text-muted" for="use-ai-toggle">
+                            <i class="bi bi-robot me-1"></i>使用AI自动回复
+                            <span class="text-muted">({{ ai_config.model_name }})</span>
+                        </label>
+                        <a href="{% url 'messages:ai_config' %}" class="small text-decoration-none ms-2">设置</a>
+                    </div>
+                    {% else %}
+                    <div class="small text-muted">
+                        <a href="{% url 'messages:ai_config' %}" class="text-decoration-none">
+                            <i class="bi bi-robot me-1"></i>配置AI助手
+                        </a>后可使用AI自动回复功能
+                    </div>
+                    {% endif %}
                 </form>
             </div>
         </div>
@@ -60,14 +97,21 @@ document.getElementById('message-form').addEventListener('submit', function(e) {
     const content = input.value.trim();
     if (!content) return;
 
+    const useAi = document.getElementById('use-ai-toggle');
+    const formData = new URLSearchParams();
+    formData.append('content', content);
+    if (useAi && useAi.checked) {
+        formData.append('use_ai', 'on');
+    }
+
     fetch(this.action, {
         method: 'POST',
         headers: {
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'X-CSRFToken': getCookie('csrftoken'),
             'X-Requested-With': 'XMLHttpRequest',
             'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: new URLSearchParams({content: content})
+        body: formData.toString()
     })
     .then(response => response.json())
     .then(data => {

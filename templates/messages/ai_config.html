@@ -1,0 +1,106 @@
+{% extends "base/base.html" %}
+
+{% block title %}AI助手设置 - 校园墙{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="d-flex align-items-center mb-4">
+            <a href="{% url 'messages:list' %}" class="text-decoration-none me-3">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <h4 class="mb-0"><i class="bi bi-robot me-2"></i>AI助手设置</h4>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <div class="alert alert-info small">
+                    <i class="bi bi-info-circle me-1"></i>
+                    配置AI后，在私信对话中开启"使用AI自动回复"开关，发送的消息将由AI自动回复。
+                    支持所有OpenAI兼容的API（如OpenAI、DeepSeek、通义千问等）。
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            {{ form.is_enabled }}
+                            <label class="form-check-label fw-bold" for="{{ form.is_enabled.id_for_label }}">
+                                启用AI对话
+                            </label>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="mb-3">
+                        <label for="{{ form.api_key.id_for_label }}" class="form-label fw-bold">API密钥</label>
+                        {{ form.api_key }}
+                        {% if form.api_key.errors %}
+                        <div class="text-danger small mt-1">{{ form.api_key.errors }}</div>
+                        {% endif %}
+                        <div class="form-text">你的API密钥会安全存储，仅用于调用AI接口</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.api_base_url.id_for_label }}" class="form-label fw-bold">API地址</label>
+                        {{ form.api_base_url }}
+                        {% if form.api_base_url.errors %}
+                        <div class="text-danger small mt-1">{{ form.api_base_url.errors }}</div>
+                        {% endif %}
+                        <div class="form-text">
+                            常用地址：
+                            <code>https://api.openai.com/v1</code> (OpenAI)，
+                            <code>https://api.deepseek.com/v1</code> (DeepSeek)
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.model_name.id_for_label }}" class="form-label fw-bold">模型名称</label>
+                        {{ form.model_name }}
+                        {% if form.model_name.errors %}
+                        <div class="text-danger small mt-1">{{ form.model_name.errors }}</div>
+                        {% endif %}
+                        <div class="form-text">
+                            常用模型：
+                            <code>gpt-3.5-turbo</code>，
+                            <code>gpt-4</code>，
+                            <code>deepseek-chat</code>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.system_prompt.id_for_label }}" class="form-label fw-bold">系统提示词</label>
+                        {{ form.system_prompt }}
+                        {% if form.system_prompt.errors %}
+                        <div class="text-danger small mt-1">{{ form.system_prompt.errors }}</div>
+                        {% endif %}
+                        <div class="form-text">设定AI的角色和行为，如"你是一个友善的助手，用中文回答"</div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.temperature.id_for_label }}" class="form-label fw-bold">温度 ({{ ai_config.temperature }})</label>
+                            {{ form.temperature }}
+                            <div class="form-text">0.0=精确, 1.0=平衡, 2.0=随机</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.max_tokens.id_for_label }}" class="form-label fw-bold">最大回复长度</label>
+                            {{ form.max_tokens }}
+                            <div class="form-text">单次回复的最大token数</div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-1"></i>保存设置
+                        </button>
+                        <a href="{% url 'messages:list' %}" class="btn btn-outline-secondary">返回</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

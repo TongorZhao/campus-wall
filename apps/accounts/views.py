@@ -41,6 +41,7 @@ def login_view(request):
 
 
 @login_required
+@require_POST
 def logout_view(request):
     logout(request)
     messages.info(request, '已退出登录')
@@ -50,9 +51,13 @@ def logout_view(request):
 @login_required
 def profile_view(request):
     user_posts = Post.objects.filter(author=request.user)
+    followers_count = FollowRelationship.objects.filter(following=request.user).count()
+    following_count = FollowRelationship.objects.filter(follower=request.user).count()
     return render(request, 'accounts/profile.html', {
         'profile_user': request.user,
         'posts': user_posts,
+        'followers_count': followers_count,
+        'following_count': following_count,
     })
 
 

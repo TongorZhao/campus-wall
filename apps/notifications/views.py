@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.core.paginator import Paginator
 from django.conf import settings
+from django.views.decorators.http import require_POST
 from django.utils.http import url_has_allowed_host_and_scheme
 from .models import Notification, Report
 
@@ -44,10 +45,10 @@ def mark_read_view(request, pk):
 
 
 @login_required
+@require_POST
 def mark_all_read_view(request):
-    if request.method == 'POST':
-        Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
-        messages.success(request, '已全部标记为已读')
+    Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+    messages.success(request, '已全部标记为已读')
 
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return JsonResponse({'success': True})

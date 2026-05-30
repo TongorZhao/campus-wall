@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, re_path
 from . import views
 
 app_name = 'posts'
@@ -7,7 +7,7 @@ urlpatterns = [
     path('', views.feed_view, name='feed'),
     path('hot/', views.hot_view, name='hot'),
     path('category/<slug:slug>/', views.category_view, name='category'),
-    path('tag/<slug:slug>/', views.tag_view, name='tag'),
+    re_path(r'^tag/(?P<slug>[-\w]+)/$', views.tag_view, name='tag'),
     path('search/', views.search_view, name='search'),
     path('create/', views.post_create_view, name='create'),
     path('<int:pk>/', views.post_detail_view, name='detail'),

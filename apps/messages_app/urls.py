@@ -9,4 +9,5 @@ urlpatterns = [
     path('<int:pk>/', views.conversation_detail_view, name='detail'),
     path('<int:pk>/send/', views.send_message_view, name='send'),
     path('<int:pk>/read/', views.mark_conversation_read_view, name='mark_read'),
+    path('ai-config/', views.ai_config_view, name='ai_config'),
 ]
