@@ -1,6 +1,7 @@
 from django import forms
+from django.conf import settings
 from django.utils.text import slugify
-from .models import Post, PostImage, Tag
+from .models import Post, PostImage, Tag, Comment
 
 
 class PostForm(forms.ModelForm):
@@ -24,6 +25,15 @@ class PostImageForm(forms.ModelForm):
         model = PostImage
         fields = ('image',)
 
+    def clean_image(self):
+        image = self.cleaned_data.get('image')
+        if image:
+            if image.size > settings.MAX_UPLOAD_SIZE:
+                raise forms.ValidationError('图片大小不能超过 10MB')
+            if hasattr(image, 'content_type') and image.content_type not in settings.ALLOWED_IMAGE_TYPES:
+                raise forms.ValidationError('只支持 JPG、PNG、GIF、WebP 格式的图片')
+        return image
+
 
 PostImageFormSet = forms.inlineformset_factory(
     Post,
@@ -36,8 +46,10 @@ PostImageFormSet = forms.inlineformset_factory(
 
 
 class CommentForm(forms.ModelForm):
+    parent_id = forms.IntegerField(required=False, widget=forms.HiddenInput())
+
     class Meta:
-        model = Post
+        model = Comment
         fields = ('content',)
         widgets = {
             'content': forms.Textarea(attrs={

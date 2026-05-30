@@ -1,6 +1,3 @@
-from .models import Message
-
-
 def unread_message_count(request):
     if request.user.is_authenticated:
         from django.db.models import Q, Count

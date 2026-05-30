@@ -13,8 +13,7 @@ class Command(BaseCommand):
             {'name': '吐槽树洞', 'slug': 'vent', 'icon': 'bi-chat-heart', 'order': 4},
             {'name': '学习交流', 'slug': 'study', 'icon': 'bi-book', 'order': 5},
             {'name': '社团活动', 'slug': 'club', 'icon': 'bi-people', 'order': 6},
-            {'name': '表白墙', 'slug': 'confession2', 'icon': 'bi-envelope-heart', 'order': 7},
-            {'name': '校园资讯', 'slug': 'news', 'icon': 'bi-megaphone', 'order': 8},
+            {'name': '校园资讯', 'slug': 'news', 'icon': 'bi-megaphone', 'order': 7},
             {'name': '其他', 'slug': 'other', 'icon': 'bi-three-dots', 'order': 99},
         ]
 

@@ -20,10 +20,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function replyTo(commentId, authorName) {
     const input = document.getElementById('comment-input');
+    const parentIdInput = document.querySelector('input[name="parent_id"]');
     if (input) {
         input.value = '@' + authorName + ' ';
         input.focus();
         input.scrollIntoView({ behavior: 'smooth' });
+    }
+    if (parentIdInput) {
+        parentIdInput.value = commentId;
     }
 }
 

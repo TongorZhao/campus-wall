@@ -127,6 +127,7 @@
                 {% if user.is_authenticated %}
                 <form method="post" action="{% url 'posts:detail' pk=post.pk %}" class="mb-4">
                     {% csrf_token %}
+                    <input type="hidden" name="parent_id" value="">
                     <div class="d-flex">
                         <div class="flex-grow-1">
                             <textarea id="comment-input" name="content" class="form-control" rows="3" placeholder="写下你的评论..." required></textarea>

@@ -6,6 +6,7 @@ from django.core.paginator import Paginator
 from django.db.models import Q, Count, F
 from django.utils.text import slugify
 from django.conf import settings
+from django.views.decorators.http import require_POST
 from .models import Post, Category, Tag, Like, Comment, CommentLike, Favorite, PostImage
 from .forms import PostForm, PostImageFormSet, CommentForm, SearchForm
 from apps.notifications.models import Notification
@@ -227,7 +228,31 @@ def post_detail_view(request, pk):
 
     if request.user.is_authenticated and post.author != request.user:
         Post.objects.filter(pk=pk).update(view_count=F('view_count') + 1)
-    post.refresh_from_db()
+        post.refresh_from_db()
+
+    if request.method == 'POST' and request.user.is_authenticated:
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.post = post
+            comment.author = request.user
+            parent_id = form.cleaned_data.get('parent_id')
+            if parent_id:
+                parent_comment = get_object_or_404(Comment, pk=parent_id, post=post, is_deleted=False)
+                comment.parent = parent_comment
+            comment.save()
+            Post.objects.filter(pk=pk).update(comment_count=F('comment_count') + 1)
+            if post.author != request.user:
+                notification_type = 'reply' if parent_id else 'comment'
+                Notification.objects.create(
+                    user=post.author,
+                    notification_type=notification_type,
+                    actor=request.user,
+                    post=post,
+                    message=f'{request.user.get_display_name()} 评论了你的帖子「{post.title}」',
+                )
+            messages.success(request, '评论发表成功！')
+            return redirect('posts:detail', pk=pk)
 
     comments = post.comments.filter(is_deleted=False).select_related('author').prefetch_related('replies')
 
@@ -392,3 +417,15 @@ def my_posts_view(request):
         'liked_post_ids': liked_post_ids,
         'favorited_post_ids': favorited_post_ids,
     })
+
+
+@login_required
+@require_POST
+def comment_delete_view(request, pk):
+    comment = get_object_or_404(Comment, pk=pk, author=request.user, is_deleted=False)
+    post = comment.post
+    comment.soft_delete()
+    Post.objects.filter(pk=post.pk).update(comment_count=F('comment_count') - 1)
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'success': True})
+    return redirect('posts:detail', pk=post.pk)

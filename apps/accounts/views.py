@@ -3,6 +3,7 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
+from django.urls import reverse
 from .models import User, FollowRelationship
 from .forms import RegisterForm, ProfileEditForm
 from apps.posts.models import Post
@@ -29,8 +30,10 @@ def login_view(request):
         if user is not None:
             login(request, user)
             messages.success(request, '登录成功！')
-            next_url = request.GET.get('next', 'posts:feed')
-            return redirect(next_url)
+            next_url = request.GET.get('next')
+            if next_url and next_url.startswith('/') and not next_url.startswith('//'):
+                return redirect(next_url)
+            return redirect(reverse('posts:feed'))
         else:
             messages.error(request, '用户名或密码错误')
     return render(request, 'accounts/login.html')

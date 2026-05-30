@@ -15,6 +15,7 @@ urlpatterns = [
     path('<int:pk>/delete/', views.post_delete_view, name='delete'),
     path('<int:pk>/like/', views.post_like_toggle, name='like_toggle'),
     path('<int:pk>/favorite/', views.post_favorite_toggle, name='favorite_toggle'),
+    path('comment/<int:pk>/delete/', views.comment_delete_view, name='comment_delete'),
     path('my/favorites/', views.my_favorites_view, name='my_favorites'),
     path('my/posts/', views.my_posts_view, name='my_posts'),
 ]

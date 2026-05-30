@@ -97,8 +97,8 @@ class Post(models.Model):
         return self.author.avatar
 
     def increment_views(self):
-        self.view_count = models.F('view_count') + 1
-        self.save(update_fields=['view_count'])
+        Post.objects.filter(pk=self.pk).update(view_count=F('view_count') + 1)
+        self.refresh_from_db()
 
     def soft_delete(self):
         self.is_deleted = True
