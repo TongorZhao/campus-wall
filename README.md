@@ -1,6 +1,6 @@
 # Campus Wall - 校园墙
 
-[中文](README.md) | [English](README.en.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Русский](README.ru.md) | [العربية](README.ar.md) | [Português](README.pt.md)
+[中文](README.md) | [English](README.en.md)
 
 一个基于 Django 的校园匿名/公开论坛系统。
 

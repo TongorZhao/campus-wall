@@ -1,6 +1,6 @@
 # Campus Wall
 
-[中文](README.md) | English | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Русский](README.ru.md) | [العربية](README.ar.md) | [Português](README.pt.md)
+[中文](README.md) | [English](README.en.md)
 
 A campus anonymous/public forum system based on Django.
 
