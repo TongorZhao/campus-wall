@@ -12,7 +12,7 @@
             <div class="card mb-3 shadow-sm conversation-card">
                 <div class="card-body d-flex align-items-center">
                     <div class="me-3">
-                        {% with other=conversation._cached_other_user %}
+                        {% with other=conversation.other_user %}
                         {% if other.avatar %}
                         <img src="{{ other.avatar.url }}" alt="头像" class="rounded-circle" style="width: 50px; height: 50px; object-fit: cover;">
                         {% else %}
@@ -24,7 +24,7 @@
                     </div>
                     <div class="flex-grow-1">
                         <div class="d-flex justify-content-between">
-                            <h6 class="mb-0">{{ conversation._cached_other_user.get_display_name }}</h6>
+                            <h6 class="mb-0">{{ conversation.other_user.get_display_name }}</h6>
                             {% if conversation.last_message %}
                             <small class="text-muted">{{ conversation.last_message.created_at|timesince }}前</small>
                             {% endif %}

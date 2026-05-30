@@ -21,7 +21,7 @@ def conversation_list_view(request):
     ).order_by('-last_message_time')
 
     for conv in conversations:
-        conv._cached_other_user = conv.participants.exclude(pk=request.user.pk).first()
+        conv.other_user = conv.participants.exclude(pk=request.user.pk).first()
 
     return render(request, 'messages/list.html', {
         'conversations': conversations,
