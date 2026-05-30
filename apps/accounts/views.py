@@ -3,7 +3,6 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
-from django.db.models import Count
 from .models import User, FollowRelationship
 from .forms import RegisterForm, ProfileEditForm
 from apps.posts.models import Post
@@ -46,9 +45,7 @@ def logout_view(request):
 
 @login_required
 def profile_view(request):
-    user_posts = Post.objects.filter(author=request.user).annotate(
-        comment_count=Count('comments')
-    )
+    user_posts = Post.objects.filter(author=request.user)
     return render(request, 'accounts/profile.html', {
         'profile_user': request.user,
         'posts': user_posts,
@@ -70,9 +67,7 @@ def profile_edit_view(request):
 
 def user_profile_view(request, username):
     profile_user = get_object_or_404(User, username=username)
-    user_posts = Post.objects.filter(author=profile_user).annotate(
-        comment_count=Count('comments')
-    )
+    user_posts = Post.objects.filter(author=profile_user)
     is_following = False
     if request.user.is_authenticated:
         is_following = FollowRelationship.objects.filter(
