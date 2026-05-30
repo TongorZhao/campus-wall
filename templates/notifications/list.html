@@ -1,0 +1,94 @@
+{% extends "base/base.html" %}
+
+{% block title %}通知 - 校园墙{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="mb-0"><i class="bi bi-bell me-2"></i>通知</h4>
+            {% if unread_count > 0 %}
+            <form method="post" action="{% url 'notifications:mark_all_read' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-primary">
+                    全部标为已读 ({{ unread_count }})
+                </button>
+            </form>
+            {% endif %}
+        </div>
+
+        <div class="btn-group mb-4">
+            <a href="{% url 'notifications:list' %}" class="btn btn-sm {% if not current_type %}btn-primary{% else %}btn-outline-primary{% endif %}">全部</a>
+            <a href="{% url 'notifications:list' %}?type=like" class="btn btn-sm {% if current_type == 'like' %}btn-primary{% else %}btn-outline-primary{% endif %}">点赞</a>
+            <a href="{% url 'notifications:list' %}?type=comment" class="btn btn-sm {% if current_type == 'comment' %}btn-primary{% else %}btn-outline-primary{% endif %}">评论</a>
+            <a href="{% url 'notifications:list' %}?type=follow" class="btn btn-sm {% if current_type == 'follow' %}btn-primary{% else %}btn-outline-primary{% endif %}">关注</a>
+            <a href="{% url 'notifications:list' %}?type=system" class="btn btn-sm {% if current_type == 'system' %}btn-primary{% else %}btn-outline-primary{% endif %}">系统</a>
+        </div>
+
+        {% for notification in notifications %}
+        <div class="card mb-2 shadow-sm {% if not notification.is_read %}border-primary{% endif %}">
+            <div class="card-body d-flex align-items-start py-3">
+                <div class="flex-grow-1">
+                    <div class="d-flex align-items-center">
+                        {% if notification.notification_type == 'like' %}
+                        <i class="bi bi-heart-fill text-danger me-2"></i>
+                        {% elif notification.notification_type == 'comment' %}
+                        <i class="bi bi-chat-fill text-primary me-2"></i>
+                        {% elif notification.notification_type == 'follow' %}
+                        <i class="bi bi-person-fill text-success me-2"></i>
+                        {% else %}
+                        <i class="bi bi-bell-fill text-warning me-2"></i>
+                        {% endif %}
+                        <span>{{ notification.message }}</span>
+                    </div>
+                    <small class="text-muted">{{ notification.created_at|timesince }}前</small>
+                </div>
+                <div class="d-flex gap-1">
+                    {% if not notification.is_read %}
+                    <form method="post" action="{% url 'notifications:mark_read' pk=notification.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-link text-muted p-0" title="标为已读">
+                            <i class="bi bi-check"></i>
+                        </button>
+                    </form>
+                    {% endif %}
+                    <form method="post" action="{% url 'notifications:delete' pk=notification.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-link text-muted p-0" title="删除">
+                            <i class="bi bi-x"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-5">
+            <i class="bi bi-bell fs-1 text-muted"></i>
+            <p class="text-muted mt-2">暂无通知</p>
+        </div>
+        {% endfor %}
+
+        {% if notifications.has_other_pages %}
+        <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if notifications.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ notifications.previous_page_number }}{% if current_type %}&type={{ current_type }}{% endif %}">上一页</a>
+                </li>
+                {% endif %}
+                {% for num in notifications.paginator.page_range %}
+                <li class="page-item {% if notifications.number == num %}active{% endif %}">
+                    <a class="page-link" href="?page={{ num }}{% if current_type %}&type={{ current_type }}{% endif %}">{{ num }}</a>
+                </li>
+                {% endfor %}
+                {% if notifications.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ notifications.next_page_number }}{% if current_type %}&type={{ current_type }}{% endif %}">下一页</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,82 @@
+{% extends "base/base.html" %}
+
+{% block title %}编辑帖子 - 校园墙{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <h4 class="mb-4">编辑帖子</h4>
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="id_title" class="form-label">标题</label>
+                        <input type="text" name="title" id="id_title" class="form-control" value="{{ post.title }}" required maxlength="200">
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_content" class="form-label">内容</label>
+                        <textarea name="content" id="id_content" class="form-control" rows="10" required>{{ post.content }}</textarea>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_category" class="form-label">分类</label>
+                            <select name="category" id="id_category" class="form-select">
+                                <option value="">-- 选择分类 --</option>
+                                {% for cat in categories %}
+                                <option value="{{ cat.pk }}" {% if post.category.pk == cat.pk %}selected{% endif %}>{{ cat.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_anonymity" class="form-label">发布方式</label>
+                            <select name="anonymity" id="id_anonymity" class="form-select">
+                                <option value="public" {% if post.anonymity == 'public' %}selected{% endif %}>公开</option>
+                                <option value="anonymous" {% if post.anonymity == 'anonymous' %}selected{% endif %}>匿名发布</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">标签</label>
+                        <input type="text" name="tags_input" class="form-control" value="{{ tags_input }}" placeholder="多个标签用逗号分隔">
+                    </div>
+
+                    {% if post.images.all %}
+                    <div class="mb-3">
+                        <label class="form-label">现有图片</label>
+                        <div class="row g-2">
+                            {% for image in post.images.all %}
+                            <div class="col-6 col-md-3">
+                                <div class="position-relative">
+                                    <img src="{{ image.image.url }}" alt="图片" class="img-fluid rounded" style="height: 120px; object-fit: cover;">
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label class="form-label">添加新图片</label>
+                        {{ formset.management_form }}
+                        <div class="row g-2">
+                            {% for form in formset %}
+                            <div class="col-6 col-md-3">
+                                <div class="border rounded p-2 text-center" style="min-height: 120px;">
+                                    {{ form.image }}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">保存修改</button>
+                        <a href="{% url 'posts:detail' pk=post.pk %}" class="btn btn-outline-secondary">取消</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

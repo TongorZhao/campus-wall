@@ -1,0 +1,55 @@
+{% extends "base/base.html" %}
+
+{% block title %}私信 - 校园墙{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <h4 class="mb-4"><i class="bi bi-chat-dots me-2"></i>私信</h4>
+
+        {% for conversation in conversations %}
+        <a href="{% url 'messages:detail' pk=conversation.pk %}" class="text-decoration-none">
+            <div class="card mb-3 shadow-sm conversation-card">
+                <div class="card-body d-flex align-items-center">
+                    <div class="me-3">
+                        {% with other=conversation.get_other_participant %}
+                        {% if other.avatar %}
+                        <img src="{{ other.avatar.url }}" alt="头像" class="rounded-circle" style="width: 50px; height: 50px; object-fit: cover;">
+                        {% else %}
+                        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                            <i class="bi bi-person-fill text-white"></i>
+                        </div>
+                        {% endif %}
+                        {% endwith %}
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between">
+                            <h6 class="mb-0">{{ conversation.get_other_participant.get_display_name }}</h6>
+                            {% if conversation.last_message %}
+                            <small class="text-muted">{{ conversation.last_message.created_at|timesince }}前</small>
+                            {% endif %}
+                        </div>
+                        {% if conversation.last_message %}
+                        <p class="text-muted small mb-0 text-truncate" style="max-width: 400px;">
+                            {% if conversation.last_message.sender == user %}
+                            <span class="text-muted">我：</span>
+                            {% endif %}
+                            {{ conversation.last_message.content }}
+                        </p>
+                        {% endif %}
+                    </div>
+                    {% if conversation.unread_count > 0 %}
+                    <span class="badge bg-danger rounded-pill ms-2">{{ conversation.unread_count }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </a>
+        {% empty %}
+        <div class="text-center py-5">
+            <i class="bi bi-chat-dots fs-1 text-muted"></i>
+            <p class="text-muted mt-2">还没有私信</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

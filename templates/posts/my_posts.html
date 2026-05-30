@@ -1,0 +1,49 @@
+{% extends "base/base.html" %}
+
+{% block title %}我的帖子 - 校园墙{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <h4 class="mb-4"><i class="bi bi-file-text me-2"></i>我的帖子</h4>
+
+        {% for post in posts %}
+        <div class="card mb-3 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <small class="text-muted">{{ post.created_at|timesince }}前</small>
+                    <div>
+                        {% if post.category %}
+                        <span class="badge bg-light text-primary me-2">{{ post.category.name }}</span>
+                        {% endif %}
+                        <div class="btn-group btn-group-sm">
+                            <a href="{% url 'posts:edit' pk=post.pk %}" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{% url 'posts:delete' pk=post.pk %}" class="btn btn-outline-danger btn-sm">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <a href="{% url 'posts:detail' pk=post.pk %}" class="text-decoration-none text-dark">
+                    <h6>{{ post.title }}</h6>
+                </a>
+                <p class="text-muted small mb-2">{{ post.content|truncatechars:150 }}</p>
+                <div class="text-muted small">
+                    <span class="me-3"><i class="bi bi-eye"></i> {{ post.view_count }}</span>
+                    <span class="me-3"><i class="bi bi-heart"></i> {{ post.like_count }}</span>
+                    <span><i class="bi bi-chat"></i> {{ post.comment_count }}</span>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-5">
+            <i class="bi bi-file-text fs-1 text-muted"></i>
+            <p class="text-muted mt-2">还没有发布过帖子</p>
+            <a href="{% url 'posts:create' %}" class="btn btn-primary">发布第一篇帖子</a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

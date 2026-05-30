@@ -1,0 +1,80 @@
+{% extends "base/base.html" %}
+
+{% block title %}{{ profile_user.get_display_name }} - 校园墙{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="me-4">
+                        {% if profile_user.avatar %}
+                        <img src="{{ profile_user.avatar.url }}" alt="头像" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
+                        {% else %}
+                        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 100px; height: 100px;">
+                            <i class="bi bi-person-fill text-white" style="font-size: 2.5rem;"></i>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="flex-grow-1">
+                        <h4 class="mb-1">{{ profile_user.get_display_name }}</h4>
+                        <p class="text-muted mb-2">@{{ profile_user.username }}</p>
+                        {% if profile_user.bio %}
+                        <p class="mb-2">{{ profile_user.bio }}</p>
+                        {% endif %}
+                        <div class="d-flex gap-3 text-muted small">
+                            {% if profile_user.school %}<span><i class="bi bi-building me-1"></i>{{ profile_user.school }}</span>{% endif %}
+                            {% if profile_user.grade %}<span><i class="bi bi-book me-1"></i>{{ profile_user.grade }}</span>{% endif %}
+                        </div>
+                        <div class="d-flex gap-3 mt-2">
+                            <span><strong id="followers-count">{{ followers_count }}</strong> 粉丝</span>
+                            <span><strong>{{ following_count }}</strong> 关注</span>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        {% if user.is_authenticated and user != profile_user %}
+                        <form method="post" action="{% url 'accounts:follow_toggle' username=profile_user.username %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn {% if is_following %}btn-outline-primary{% else %}btn-primary{% endif %}">
+                                <i class="bi bi-{% if is_following %}person-dash{% else %}person-plus{% endif %}"></i>
+                                {% if is_following %}取消关注{% else %}关注{% endif %}
+                            </button>
+                        </form>
+                        <a href="{% url 'messages:start' username=profile_user.username %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-chat"></i> 私信
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h5 class="mb-3">{{ profile_user.get_display_name }} 的帖子</h5>
+        {% for post in posts %}
+        <div class="card mb-3 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <small class="text-muted">{{ post.created_at|timesince }}前</small>
+                    {% if post.category %}
+                    <span class="badge bg-light text-primary">{{ post.category.name }}</span>
+                    {% endif %}
+                </div>
+                <a href="{% url 'posts:detail' pk=post.pk %}" class="text-decoration-none text-dark">
+                    <h6>{{ post.title }}</h6>
+                </a>
+                <p class="text-muted small mb-2">{{ post.content|truncatechars:100 }}</p>
+                <div class="text-muted small">
+                    <span class="me-3"><i class="bi bi-heart"></i> {{ post.like_count }}</span>
+                    <span><i class="bi bi-chat"></i> {{ post.comment_count }}</span>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-4 text-muted">
+            <p>该用户还没有发布过帖子</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

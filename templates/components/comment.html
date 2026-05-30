@@ -1,0 +1,71 @@
+<div class="comment-item border-bottom py-3" id="comment-{{ comment.id }}">
+    <div class="d-flex">
+        <div class="flex-shrink-0 me-3">
+            <a href="{% url 'accounts:user_profile' username=comment.author.username %}">
+                {% if comment.anonymity == 'anonymous' %}
+                <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                    <i class="bi bi-person-fill text-white"></i>
+                </div>
+                {% elif comment.author.avatar %}
+                <img src="{{ comment.author.avatar.url }}" alt="头像" class="rounded-circle" style="width: 36px; height: 36px; object-fit: cover;">
+                {% else %}
+                <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                    <i class="bi bi-person-fill text-white"></i>
+                </div>
+                {% endif %}
+            </a>
+        </div>
+        <div class="flex-grow-1">
+            <div class="d-flex align-items-center mb-1">
+                <a href="{% url 'accounts:user_profile' username=comment.author.username %}" class="text-decoration-none fw-bold me-2">
+                    {{ comment.get_author_display }}
+                </a>
+                <small class="text-muted">{{ comment.created_at|timesince }}前</small>
+                {% if user == comment.author or user.is_staff %}
+                <div class="ms-auto">
+                    <button class="btn btn-sm btn-link text-muted p-0" onclick="deleteComment({{ comment.id }})">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+            <div style="white-space: pre-wrap;">{{ comment.content }}</div>
+            <div class="mt-2">
+                <button class="btn btn-sm btn-link text-muted p-0" onclick="replyTo({{ comment.id }}, '{{ comment.get_author_display }}')">
+                    <i class="bi bi-reply"></i> 回复
+                </button>
+            </div>
+
+            {% for reply in comment.replies.all %}
+            <div class="comment-reply ms-4 mt-3 border-start ps-3" id="comment-{{ reply.id }}">
+                <div class="d-flex">
+                    <div class="flex-shrink-0 me-2">
+                        <a href="{% url 'accounts:user_profile' username=reply.author.username %}">
+                            {% if reply.anonymity == 'anonymous' %}
+                            <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">
+                                <i class="bi bi-person-fill text-white small"></i>
+                            </div>
+                            {% elif reply.author.avatar %}
+                            <img src="{{ reply.author.avatar.url }}" alt="头像" class="rounded-circle" style="width: 28px; height: 28px; object-fit: cover;">
+                            {% else %}
+                            <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">
+                                <i class="bi bi-person-fill text-white small"></i>
+                            </div>
+                            {% endif %}
+                        </a>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-center mb-1">
+                            <a href="{% url 'accounts:user_profile' username=reply.author.username %}" class="text-decoration-none fw-bold me-2 small">
+                                {{ reply.get_author_display }}
+                            </a>
+                            <small class="text-muted">{{ reply.created_at|timesince }}前</small>
+                        </div>
+                        <div class="small" style="white-space: pre-wrap;">{{ reply.content }}</div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
