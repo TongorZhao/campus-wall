@@ -18,12 +18,13 @@
             <div class="card-body">
                 <div class="d-flex justify-content-between">
                     <div class="d-flex align-items-center mb-2">
+                        {% if post.anonymity == 'anonymous' %}
+                        <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px;">
+                            <i class="bi bi-person-fill text-white"></i>
+                        </div>
+                        {% else %}
                         <a href="{% url 'accounts:user_profile' username=post.author.username %}" class="text-decoration-none me-2">
-                            {% if post.anonymity == 'anonymous' %}
-                            <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                <i class="bi bi-person-fill text-white"></i>
-                            </div>
-                            {% elif post.author.avatar %}
+                            {% if post.author.avatar %}
                             <img src="{{ post.author.avatar.url }}" alt="头像" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
                             {% else %}
                             <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
@@ -31,10 +32,15 @@
                             </div>
                             {% endif %}
                         </a>
+                        {% endif %}
                         <div>
+                            {% if post.anonymity == 'anonymous' %}
+                            <span class="fw-bold text-dark">{{ post.get_author_display }}</span>
+                            {% else %}
                             <a href="{% url 'accounts:user_profile' username=post.author.username %}" class="text-decoration-none fw-bold text-dark">
                                 {{ post.get_author_display }}
                             </a>
+                            {% endif %}
                             <div class="text-muted small">{{ post.created_at|timesince }}前</div>
                         </div>
                         {% if post.is_pinned %}

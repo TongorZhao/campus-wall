@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.core.paginator import Paginator
 from django.conf import settings
+from django.utils.http import url_has_allowed_host_and_scheme
 from .models import Notification, Report
 
 
@@ -36,7 +37,9 @@ def mark_read_view(request, pk):
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return JsonResponse({'success': True})
 
-    next_url = request.GET.get('next', 'notifications:list')
+    next_url = request.GET.get('next')
+    if not next_url or not url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
+        next_url = 'notifications:list'
     return redirect(next_url)
 
 

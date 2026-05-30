@@ -1,7 +1,5 @@
 # Campus Wall - 校园墙
 
-[中文](README.md) | [English](README.en.md)
-
 一个基于 Django 的校园匿名/公开论坛系统。
 
 ## 功能特性

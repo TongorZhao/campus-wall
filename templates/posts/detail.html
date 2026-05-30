@@ -49,22 +49,23 @@
                 <h1 class="h3 mb-3">{{ post.title }}</h1>
 
                 <div class="d-flex align-items-center mb-3 text-muted small">
+                    {% if post.anonymity == 'anonymous' %}
+                    <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 36px; height: 36px;">
+                        <i class="bi bi-person-fill text-white"></i>
+                    </div>
+                    <span>匿名用户</span>
+                    {% else %}
                     <a href="{% url 'accounts:user_profile' username=post.author.username %}" class="text-decoration-none d-flex align-items-center">
-                        {% if post.anonymity == 'anonymous' %}
-                        <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 36px; height: 36px;">
-                            <i class="bi bi-person-fill text-white"></i>
-                        </div>
-                        <span>匿名用户</span>
-                        {% elif post.author.avatar %}
+                        {% if post.author.avatar %}
                         <img src="{{ post.author.avatar.url }}" alt="头像" class="rounded-circle me-2" style="width: 36px; height: 36px; object-fit: cover;">
-                        <span>{{ post.author.get_display_name }}</span>
                         {% else %}
                         <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 36px; height: 36px;">
                             <i class="bi bi-person-fill text-white"></i>
                         </div>
-                        <span>{{ post.author.get_display_name }}</span>
                         {% endif %}
+                        <span>{{ post.author.get_display_name }}</span>
                     </a>
+                    {% endif %}
                     <span class="mx-2">|</span>
                     <span>{{ post.created_at|naturaltime }}</span>
                     <span class="mx-2">|</span>

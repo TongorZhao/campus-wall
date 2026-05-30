@@ -12,12 +12,13 @@
             <div class="card-body">
                 <div class="d-flex justify-content-between mb-2">
                     <div class="d-flex align-items-center">
+                        {% if post.anonymity == 'anonymous' %}
+                        <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                            <i class="bi bi-person-fill text-white small"></i>
+                        </div>
+                        {% else %}
                         <a href="{% url 'accounts:user_profile' username=post.author.username %}" class="text-decoration-none me-2">
-                            {% if post.anonymity == 'anonymous' %}
-                            <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                                <i class="bi bi-person-fill text-white small"></i>
-                            </div>
-                            {% elif post.author.avatar %}
+                            {% if post.author.avatar %}
                             <img src="{{ post.author.avatar.url }}" alt="头像" class="rounded-circle" style="width: 32px; height: 32px; object-fit: cover;">
                             {% else %}
                             <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
@@ -25,6 +26,7 @@
                             </div>
                             {% endif %}
                         </a>
+                        {% endif %}
                         <span class="text-muted small">{{ post.get_author_display }} · {{ post.created_at|timesince }}前</span>
                     </div>
                 </div>

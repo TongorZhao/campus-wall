@@ -33,7 +33,7 @@ function replyTo(commentId, authorName) {
 
 function deleteComment(commentId) {
     if (confirm('确定要删除这条评论吗？')) {
-        fetch('/posts/comment/' + commentId + '/delete/', {
+        fetch('/comment/' + commentId + '/delete/', {
             method: 'POST',
             headers: {
                 'X-CSRFToken': getCookie('csrftoken'),
@@ -66,7 +66,7 @@ function getCookie(name) {
 }
 
 function toggleLike(postId) {
-    fetch('/posts/' + postId + '/like/', {
+    fetch('/' + postId + '/like/', {
         method: 'POST',
         headers: {
             'X-CSRFToken': getCookie('csrftoken'),

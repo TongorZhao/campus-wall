@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
 from django.urls import reverse
+from django.views.decorators.http import require_POST
 from .models import User, FollowRelationship
 from .forms import RegisterForm, ProfileEditForm
 from apps.posts.models import Post
@@ -89,34 +90,34 @@ def user_profile_view(request, username):
 
 
 @login_required
+@require_POST
 def follow_toggle_view(request, username):
-    if request.method == 'POST':
-        target_user = get_object_or_404(User, username=username)
-        if target_user == request.user:
-            return JsonResponse({'error': '不能关注自己'}, status=400)
+    target_user = get_object_or_404(User, username=username)
+    if target_user == request.user:
+        return JsonResponse({'error': '不能关注自己'}, status=400)
 
-        relationship, created = FollowRelationship.objects.get_or_create(
-            follower=request.user, following=target_user
+    relationship, created = FollowRelationship.objects.get_or_create(
+        follower=request.user, following=target_user
+    )
+    if not created:
+        relationship.delete()
+        is_following = False
+    else:
+        is_following = True
+        from apps.notifications.models import Notification
+        Notification.objects.create(
+            user=target_user,
+            notification_type='follow',
+            actor=request.user,
+            message=f'{request.user.get_display_name()} 关注了你',
         )
-        if not created:
-            relationship.delete()
-            is_following = False
-        else:
-            is_following = True
-            from apps.notifications.models import Notification
-            Notification.objects.create(
-                user=target_user,
-                notification_type='follow',
-                actor=request.user,
-                message=f'{request.user.get_display_name()} 关注了你',
-            )
 
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({
-                'is_following': is_following,
-                'followers_count': FollowRelationship.objects.filter(following=target_user).count(),
-            })
-        return redirect('accounts:user_profile', username=username)
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({
+            'is_following': is_following,
+            'followers_count': FollowRelationship.objects.filter(following=target_user).count(),
+        })
+    return redirect('accounts:user_profile', username=username)
 
 
 @login_required

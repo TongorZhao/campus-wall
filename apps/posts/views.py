@@ -106,7 +106,7 @@ def category_view(request, slug):
     return render(request, 'posts/feed.html', {
         'posts': posts,
         'categories': categories,
-        'current_category': category,
+        'current_category': category.slug,
         'liked_post_ids': liked_post_ids,
         'favorited_post_ids': favorited_post_ids,
     })
@@ -204,6 +204,10 @@ def post_create_view(request):
             formset = PostImageFormSet(request.POST, request.FILES, instance=post)
             if formset.is_valid():
                 formset.save()
+            else:
+                for form in formset:
+                    for error in form.errors.values():
+                        messages.error(request, f'图片上传失败: {error}')
 
             messages.success(request, '帖子发布成功！')
             return redirect('posts:detail', pk=post.pk)
@@ -254,7 +258,7 @@ def post_detail_view(request, pk):
             messages.success(request, '评论发表成功！')
             return redirect('posts:detail', pk=pk)
 
-    comments = post.comments.filter(is_deleted=False).select_related('author').prefetch_related('replies')
+    comments = post.comments.filter(is_deleted=False).select_related('author').prefetch_related('replies__author')
 
     top_level_comments = comments.filter(parent=None)
     comment_form = CommentForm()
@@ -301,15 +305,20 @@ def post_edit_view(request, pk):
 
             messages.success(request, '帖子已更新！')
             return redirect('posts:detail', pk=post.pk)
+        tags_input = form.cleaned_data.get('tags_input', '')
     else:
         initial_tags = ', '.join(post.tags.values_list('name', flat=True))
         form = PostForm(instance=post, initial={'tags_input': initial_tags})
         formset = PostImageFormSet(instance=post)
+        tags_input = initial_tags
 
+    categories = Category.objects.filter(is_active=True)
     return render(request, 'posts/edit.html', {
         'form': form,
         'formset': formset,
         'post': post,
+        'categories': categories,
+        'tags_input': tags_input,
     })
 
 
@@ -340,7 +349,7 @@ def post_like_toggle(request, pk):
     if not created:
         like.delete()
         is_liked = False
-        Post.objects.filter(pk=pk).update(like_count=F('like_count') - 1)
+        Post.objects.filter(pk=pk, like_count__gt=0).update(like_count=F('like_count') - 1)
     else:
         is_liked = True
         Post.objects.filter(pk=pk).update(like_count=F('like_count') + 1)
@@ -354,9 +363,10 @@ def post_like_toggle(request, pk):
             )
 
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        post.refresh_from_db()
         return JsonResponse({
             'is_liked': is_liked,
-            'like_count': post.refresh_from_db() or Post.objects.filter(pk=pk).values_list('like_count', flat=True).first(),
+            'like_count': post.like_count,
         })
 
     return redirect('posts:detail', pk=pk)
@@ -389,11 +399,7 @@ def my_favorites_view(request):
     ).prefetch_related('post__tags', 'post__images')
     posts = [fav.post for fav in favorites]
 
-    if request.user.is_authenticated:
-        liked_post_ids = set(Like.objects.filter(user=request.user).values_list('post_id', flat=True))
-    else:
-        liked_post_ids = set()
-
+    liked_post_ids = set(Like.objects.filter(user=request.user).values_list('post_id', flat=True))
     favorited_post_ids = set(Favorite.objects.filter(user=request.user).values_list('post_id', flat=True))
 
     return render(request, 'posts/my_favorites.html', {
@@ -425,7 +431,7 @@ def comment_delete_view(request, pk):
     comment = get_object_or_404(Comment, pk=pk, author=request.user, is_deleted=False)
     post = comment.post
     comment.soft_delete()
-    Post.objects.filter(pk=post.pk).update(comment_count=F('comment_count') - 1)
+    Post.objects.filter(pk=post.pk, comment_count__gt=0).update(comment_count=F('comment_count') - 1)
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return JsonResponse({'success': True})
     return redirect('posts:detail', pk=post.pk)
