@@ -76,6 +76,15 @@ def report_view(request):
         reason = request.POST.get('reason')
         description = request.POST.get('description', '')
 
+        valid_reasons = [choice[0] for choice in Report.REASON_CHOICES]
+        if reason not in valid_reasons:
+            messages.error(request, '请选择有效的举报原因')
+            return redirect('posts:feed')
+
+        if not post_id and not comment_id:
+            messages.error(request, '请选择要举报的帖子或评论')
+            return redirect('posts:feed')
+
         report = Report(
             reporter=request.user,
             reason=reason,

@@ -283,7 +283,7 @@ def post_edit_view(request, pk):
     if request.method == 'POST':
         form = PostForm(request.POST, instance=post)
         formset = PostImageFormSet(request.POST, request.FILES, instance=post)
-        if form.is_valid():
+        if form.is_valid() and formset.is_valid():
             post = form.save()
 
             tags_input = form.cleaned_data.get('tags_input', '')
@@ -298,15 +298,15 @@ def post_edit_view(request, pk):
                     )
                     post.tags.add(tag)
 
-            if formset.is_valid():
-                formset.save()
-                messages.success(request, '帖子已更新！')
-                return redirect('posts:detail', pk=post.pk)
-            else:
+            formset.save()
+            messages.success(request, '帖子已更新！')
+            return redirect('posts:detail', pk=post.pk)
+        else:
+            tags_input = form.cleaned_data.get('tags_input', '') if form.is_valid() else request.POST.get('tags_input', '')
+            if not formset.is_valid():
                 for img_form in formset:
                     for error in img_form.errors.values():
                         messages.error(request, f'图片上传失败: {error}')
-        tags_input = form.cleaned_data.get('tags_input', '')
     else:
         initial_tags = ', '.join(post.tags.values_list('name', flat=True))
         form = PostForm(instance=post, initial={'tags_input': initial_tags})

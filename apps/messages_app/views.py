@@ -3,9 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
 from django.db.models import Q, Max, Count, Prefetch
-from .models import Conversation, Message, AIConfig
-from .forms import AIConfigForm
-from .ai_service import chat_with_ai
+from .models import Conversation, Message
 from apps.accounts.models import User
 from apps.notifications.models import Notification
 
@@ -17,7 +15,7 @@ def conversation_list_view(request):
     ).prefetch_related(
         Prefetch(
             'participants',
-            queryset=User.objects.filter(conversations__isnull=False).exclude(pk=request.user.pk),
+            queryset=User.objects.exclude(pk=request.user.pk),
             to_attr='other_participants'
         )
     ).annotate(
@@ -69,19 +67,17 @@ def conversation_detail_view(request, pk):
 
     other_user = conversation.get_other_participant(request.user)
 
-    conversation.messages.filter(
-        sender=other_user, is_read=False
-    ).update(is_read=True)
+    if other_user:
+        conversation.messages.filter(
+            sender=other_user, is_read=False
+        ).update(is_read=True)
 
     msg_list = conversation.messages.select_related('sender').all()
-
-    ai_config, _ = AIConfig.objects.get_or_create(user=request.user)
 
     return render(request, 'messages/detail.html', {
         'conversation': conversation,
         'other_user': other_user,
         'messages_list': msg_list,
-        'ai_config': ai_config,
     })
 
 
@@ -97,7 +93,6 @@ def send_message_view(request, pk):
     )
 
     content = request.POST.get('content', '').strip()
-    use_ai = request.POST.get('use_ai') == 'on'
 
     if not content:
         messages.error(request, '消息内容不能为空')
@@ -109,42 +104,14 @@ def send_message_view(request, pk):
         content=content,
     )
 
-    if use_ai:
-        ai_config, _ = AIConfig.objects.get_or_create(user=request.user)
-        if not ai_config.is_configured():
-            messages.warning(request, 'AI未配置，请先在私信设置中配置AI参数')
-        else:
-            history = []
-            recent_messages = conversation.messages.select_related('sender').order_by('-created_at')[:20]
-            for msg in reversed(list(recent_messages)):
-                if msg.sender == request.user:
-                    history.append({'role': 'user', 'content': msg.content})
-                elif msg.sender_type == 'ai':
-                    history.append({'role': 'assistant', 'content': msg.content})
-                else:
-                    history.append({'role': 'user', 'content': msg.content})
-
-            history = history[:-1]
-
-            result = chat_with_ai(ai_config, content, conversation_history=history)
-            if result['success']:
-                Message.objects.create(
-                    conversation=conversation,
-                    sender=request.user,
-                    sender_type='ai',
-                    content=result['content'],
-                )
-            else:
-                messages.error(request, f'AI回复失败: {result["error"]}')
-    else:
-        other_user = conversation.get_other_participant(request.user)
-        if other_user:
-            Notification.objects.create(
-                user=other_user,
-                notification_type='system',
-                actor=request.user,
-                message=f'{request.user.get_display_name()} 给你发了一条私信',
-            )
+    other_user = conversation.get_other_participant(request.user)
+    if other_user:
+        Notification.objects.create(
+            user=other_user,
+            notification_type='system',
+            actor=request.user,
+            message=f'{request.user.get_display_name()} 给你发了一条私信',
+        )
 
     conversation.save()
 
@@ -181,22 +148,3 @@ def mark_conversation_read_view(request, pk):
         return JsonResponse({'success': True})
 
     return redirect('messages:detail', pk=pk)
-
-
-@login_required
-def ai_config_view(request):
-    ai_config, created = AIConfig.objects.get_or_create(user=request.user)
-
-    if request.method == 'POST':
-        form = AIConfigForm(request.POST, instance=ai_config)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'AI配置已保存')
-            return redirect('messages:ai_config')
-    else:
-        form = AIConfigForm(instance=ai_config)
-
-    return render(request, 'messages/ai_config.html', {
-        'form': form,
-        'ai_config': ai_config,
-    })

@@ -91,11 +91,11 @@ function checkUnreadNotifications() {
     })
     .then(response => response.json())
     .then(data => {
-        const badge = document.querySelector('.notification-badge');
+        const badge = document.getElementById('notification-badge');
         if (badge) {
             if (data.unread_count > 0) {
                 badge.textContent = data.unread_count;
-                badge.style.display = 'inline';
+                badge.style.display = '';
             } else {
                 badge.style.display = 'none';
             }

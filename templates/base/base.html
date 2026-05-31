@@ -34,7 +34,7 @@
                         <a class="nav-link position-relative" href="{% url 'notifications:list' %}">
                             <i class="bi bi-bell"></i>
                             {% if unread_notification_count > 0 %}
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                            <span id="notification-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
                                 {{ unread_notification_count }}
                             </span>
                             {% endif %}
@@ -70,7 +70,6 @@
                             <li><a class="dropdown-item" href="{% url 'accounts:profile' %}"><i class="bi bi-person me-2"></i>我的主页</a></li>
                             <li><a class="dropdown-item" href="{% url 'posts:my_posts' %}"><i class="bi bi-file-text me-2"></i>我的帖子</a></li>
                             <li><a class="dropdown-item" href="{% url 'posts:my_favorites' %}"><i class="bi bi-bookmark me-2"></i>我的收藏</a></li>
-                            <li><a class="dropdown-item" href="{% url 'messages:ai_config' %}"><i class="bi bi-robot me-2"></i>AI助手设置</a></li>
                             <li><hr class="dropdown-divider"></li>
                             {% if user.is_staff %}
                             <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="bi bi-gear me-2"></i>管理后台</a></li>
